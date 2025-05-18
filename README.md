@@ -28,26 +28,6 @@ birthday_app/
 └── README.md               # Documentación del proyecto
 ```
 
-## 🚀 ¿Cómo Ejecutar?
-
-1. Clona el repositorio:
-
-   ```bash
-   git clone https://github.com/tu_usuario/birthday_app.git
-   cd birthday_app
-   ```
-
-2. Instala dependencias:
-
-   ```bash
-   pip install streamlit
-   ```
-
-3. Ejecuta la app:
-
-   ```bash
-   streamlit run app.py
-   ```
 
 ## 🧩 Diagrama UML
 
