@@ -1,17 +1,25 @@
+%%writefile app.py
 from birthday_manager import BirthdayManager
 from message_manager import MessageManager
 from email_sender import EmailSender
 from birthday_service import BirthdayService
 import streamlit as st
+from datetime import date
 
-# Configuración inicial de la página
+# Configuración inicial
 st.set_page_config(page_title="Gestor de Cumpleaños", page_icon="🎂")
 
-# Inicializar los gestores de contactos y mensajes
+# Inicializar gestores
 bm = BirthdayManager()
 mm = MessageManager()
 
-# Menú lateral para navegar entre secciones
+# Inicializar el control de correos enviados por día
+hoy = str(date.today())
+if "correos_enviados_hoy" not in st.session_state or st.session_state.get("correos_fecha") != hoy:
+    st.session_state.correos_enviados_hoy = set()
+    st.session_state.correos_fecha = hoy
+
+# Menú lateral
 with st.sidebar:
     st.header("Menú de Navegación")
     pagina = st.radio(
@@ -20,34 +28,19 @@ with st.sidebar:
         index=0
     )
 
-# Página principal: mostrar cumpleaños, envío de felicitaciones
+# Página Principal
 if pagina == "🏠 Inicio":
     st.title("🎉 Gestor de Cumpleaños - Inicio")
 
-    # Inicializar el servicio de envío de correos solo una vez por sesión
+    # Inicializar servicio solo una vez
     if "email_service" not in st.session_state:
         st.session_state.email_service = BirthdayService(
             bm,
             mm,
-            EmailSender("smtp.gmail.com", 587, "tu correo", "tu contraseña")
+            EmailSender("smtp.gmail.com", 587, "srpacman22@gmail.com", "oydv cvui hylx uimd")
         )
 
-    # Envío automático de felicitaciones solo en el primer acceso a la sesión
-    if "correos_enviados" not in st.session_state:
-        st.header("📨 Felicitaciones enviadas hoy")
-        sent = st.session_state.email_service.send_greetings_for_today()
-
-        if sent:
-            for name, email in sent:
-                st.success(f"Correo enviado a {name} ({email})")
-            st.session_state.correos_enviados = True  # Marcar que ya se enviaron
-        else:
-            st.info("No hay cumpleaños hoy.")
-    else:
-        st.header("📨 Felicitaciones enviadas hoy")
-        st.info("Los correos ya fueron enviados en esta sesión.")
-
-    # Mostrar contactos que cumplen años hoy
+    # --- Cumpleaños hoy ---
     st.header("🎁 Cumpleaños hoy")
     contacts_today = bm.get_contacts_with_birthday_today()
 
@@ -55,27 +48,57 @@ if pagina == "🏠 Inicio":
         for contact in contacts_today:
             st.write(f"**{contact.name}** - {contact.email}")
 
-        # Botón para enviar felicitaciones manualmente
+        # --- Envío automático al cargar la página (una vez por persona por día) ---
+        st.header("📨 Felicitaciones enviadas hoy")
+        nuevos_a_felicitar = [
+            c for c in contacts_today if c.email not in st.session_state.correos_enviados_hoy
+        ]
+
+        if nuevos_a_felicitar:
+            sent = []
+            for contact in nuevos_a_felicitar:
+                st.session_state.email_service.email_sender.send_email(
+                    contact.email, "🎉 ¡Feliz cumpleaños!", mm.get_random_message()
+                )
+                st.session_state.correos_enviados_hoy.add(contact.email)
+                sent.append((contact.name, contact.email))
+
+            for name, email in sent:
+                st.success(f"Correo enviado a {name} ({email})")
+        else:
+            st.info("Todos los contactos de hoy ya fueron felicitados.")
+
+        # --- Botón manual para reenviar a nuevos ---
         if st.button("🎈 Enviar felicitaciones ahora", key="enviar_hoy"):
-            sent = st.session_state.email_service.send_greetings_for_today()
-            if sent:
-                st.success("✅ Felicitaciones enviadas:")
+            nuevos_a_felicitar = [
+                c for c in contacts_today if c.email not in st.session_state.correos_enviados_hoy
+            ]
+            if nuevos_a_felicitar:
+                sent = []
+                for contact in nuevos_a_felicitar:
+                    st.session_state.email_service.send_email(
+                        contact.email, "🎉 ¡Feliz cumpleaños!", mm.get_random_message()
+                    )
+                    st.session_state.correos_enviados_hoy.add(contact.email)
+                    sent.append((contact.name, contact.email))
+                st.success("✅ Nuevas felicitaciones enviadas:")
                 for name, email in sent:
                     st.write(f"- {name} ({email})")
-                st.session_state.correos_enviados = True  # Actualizar estado
             else:
-                st.warning("⚠️ No hay cumpleaños hoy")
+                st.info("Todos los contactos de hoy ya fueron felicitados.")
+    else:
+        st.info("No hay cumpleaños hoy.")
 
-    # Mostrar próximos cumpleaños ordenados por días restantes
+    # --- Próximos cumpleaños ---
     st.header("📅 Próximos cumpleaños")
     for contact in sorted(bm.contacts, key=lambda c: c.days_until_birthday()):
         st.write(f"**{contact.name}** ({contact.birth_date.strftime('%d/%m/%Y')}) - en {contact.days_until_birthday()} días")
 
-# Página para agregar contactos y mensajes
+# Página de Agregar
 elif pagina == "➕ Agregar":
     st.title("🎉 Gestor de Cumpleaños - Agregar")
 
-    # Formulario para agregar un nuevo contacto
+    # --- Agregar contacto ---
     with st.expander("➕ Nuevo Contacto", expanded=True):
         with st.form("Agregar contacto"):
             name = st.text_input("Nombre")
@@ -85,12 +108,11 @@ elif pagina == "➕ Agregar":
             selected_msg = st.selectbox("Mensaje personalizado", msg_options)
             submitted = st.form_submit_button("Agregar")
             if submitted:
-                # Determinar índice del mensaje personalizado, o None para aleatorio
                 index = None if selected_msg == "Aleatorio" else msg_options.index(selected_msg) - 1
                 bm.add_contact(name, birth_date.strftime("%Y-%m-%d"), email, index)
                 st.success(f"Contacto {name} agregado.")
 
-    # Formulario para agregar un nuevo mensaje
+    # --- Agregar mensaje ---
     with st.expander("💌 Nuevo Mensaje", expanded=True):
         with st.form("Agregar mensaje"):
             new_message = st.text_area("Contenido del mensaje")
@@ -99,7 +121,7 @@ elif pagina == "➕ Agregar":
                 mm.add_message(new_message)
                 st.success("Mensaje guardado")
 
-    # Formulario para asignar un mensaje personalizado a un contacto
+    # --- Asignar mensaje ---
     with st.expander("🎯 Asignar Mensaje", expanded=True):
         with st.form("Asignar mensaje"):
             contact_names = [c.name for c in bm.contacts]
@@ -112,11 +134,10 @@ elif pagina == "➕ Agregar":
                 bm.assign_message_to_contact(selected_contact, index)
                 st.success(f"Mensaje asignado a {selected_contact}.")
 
-# Página para eliminar contactos o mensajes
+# Página de Eliminar
 elif pagina == "🗑️ Eliminar":
     st.title("🎉 Gestor de Cumpleaños - Eliminar")
 
-    # Eliminar contactos
     with st.expander("🗑️ Eliminar Contactos", expanded=True):
         if bm.contacts:
             contactos_a_eliminar = [c.name for c in bm.contacts]
@@ -128,7 +149,7 @@ elif pagina == "🗑️ Eliminar":
         else:
             st.warning("No hay contactos registrados")
 
-    # Eliminar mensajes
+    # --- Eliminar Mensajes ---
     with st.expander("🗑️ Eliminar Mensajes", expanded=True):
         if mm.messages:
             selected_msg_index = st.selectbox(
@@ -142,7 +163,3 @@ elif pagina == "🗑️ Eliminar":
                 st.success("Mensaje eliminado!")
         else:
             st.warning("No hay mensajes guardados")
-# --- Lista de próximos cumpleaños ---
-st.header("📅 Próximos cumpleaños")
-for contact in sorted(bm.contacts, key=lambda c: c.days_until_birthday()):
-    st.write(f"{contact.name} ({contact.birth_date.strftime('%d/%m/%Y')}) - en {contact.days_until_birthday()} días")
