@@ -103,6 +103,7 @@ birthday_app/
    ```
 
 ## 🧩 Diagrama UML
+![Diagrama-UML](https://github.com/user-attachments/assets/5b763067-e16a-4bc0-808a-03d5731d95fc)
 
-![alt text](image-1.png)
+
 
