@@ -2,17 +2,17 @@
 
 Una aplicación desarrollada en Python que permite gestionar cumpleaños, mostrar próximos eventos y enviar felicitaciones automáticas por correo electrónico usando una interfaz amigable en Streamlit.
 
-## 📌 Características Principales
+##  Características Principales
 
-- 📅 Registro y visualización de cumpleaños.
-- ⏳ Cuenta regresiva para próximos cumpleaños.
-- 💌 Envío automático de correos de felicitación.
-- ✍️ Personalización de mensajes para cada contacto.
-- 🧠 Código organizado con clases y módulos, siguiendo los principios SOLID.
-- 🌐 Interfaz web con [Streamlit](https://streamlit.io/).
-- 💾 Persistencia de datos en archivos `.csv`.
+- Registro y visualización de cumpleaños.
+- Cuenta regresiva para próximos cumpleaños.
+- Envío automático de correos de felicitación.
+- Personalización de mensajes para cada contacto.
+- Código organizado con clases y módulos, siguiendo los principios SOLID.
+- Interfaz web con [Streamlit](https://streamlit.io/).
+- Persistencia de datos en archivos `.csv`.
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 birthday_app/
