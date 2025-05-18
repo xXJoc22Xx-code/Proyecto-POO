@@ -1,4 +1,3 @@
-%%writefile app.py
 from birthday_manager import BirthdayManager
 from message_manager import MessageManager
 from email_sender import EmailSender
@@ -37,7 +36,7 @@ if pagina == "🏠 Inicio":
         st.session_state.email_service = BirthdayService(
             bm,
             mm,
-            EmailSender("smtp.gmail.com", 587, "tu correo", "tu contraseña")
+            EmailSender("smtp.gmail.com", 587, "srpacman22@gmail.com", "oydv cvui hylx uimd")
         )
 
     # --- Cumpleaños hoy ---
@@ -130,9 +129,11 @@ elif pagina == "➕ Agregar":
             selected_index = st.selectbox("Selecciona mensaje", msg_choices)
             asignar = st.form_submit_button("Asignar mensaje")
             if asignar:
-                index = int(selected_index.split('.')[0]) - 1
-                bm.assign_message_to_contact(selected_contact, index)
-                st.success(f"Mensaje asignado a {selected_contact}.")
+              index = int(selected_index.split('.')[0]) - 1
+              bm.assign_message_to_contact(selected_contact, index)
+              bm.load_contacts()
+              st.success(f"Mensaje asignado a {selected_contact}.")
+              st.session_state['dummy'] = st.session_state.get('dummy', 0) + 1
 
 # Página de Eliminar
 elif pagina == "🗑️ Eliminar":
