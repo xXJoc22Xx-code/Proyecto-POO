@@ -37,7 +37,7 @@ if pagina == "🏠 Inicio":
         st.session_state.email_service = BirthdayService(
             bm,
             mm,
-            EmailSender("smtp.gmail.com", 587, "srpacman22@gmail.com", "oydv cvui hylx uimd")
+            EmailSender("smtp.gmail.com", 587, "tu correo", "tu contraseña")
         )
 
     # --- Cumpleaños hoy ---
