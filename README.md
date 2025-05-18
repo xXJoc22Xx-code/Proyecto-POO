@@ -27,6 +27,15 @@ birthday_app/
 ├── sent_log.csv            # Registro de correos enviados (se genera)
 └── README.md               # Documentación del proyecto
 ```
+## Cómo ejecutar la aplicación
+
+El archivo principal para iniciar la aplicación es `app.py`.
+
+Para ejecutar la aplicación, usa el siguiente comando en la terminal:
+
+```bash
+python app.py
+```
 
 ## Diagrama UML
 ![Diagrama-UML](https://github.com/user-attachments/assets/5b763067-e16a-4bc0-808a-03d5731d95fc)
